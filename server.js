@@ -1,21 +1,21 @@
+'use strict';
 
-const express = require('express');
-const morgan = require('morgan');
+var express = require('express');
+var morgan = require('morgan');
 
-const app = express();
+var app = express();
 
-const shoppingListRouter = require('./shoppingListRouter');
-const recipesRouter = require('./recipesRouter');
+var shoppingListRouter = require('./shoppingListRouter');
+var recipesRouter = require('./recipesRouter');
 
 // log the http layer
 app.use(morgan('common'));
 
 app.use(express.static('public'));
 
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/views/index.html');
+app.get('/', function (req, res) {
+    res.sendFile(__dirname + '/views/index.html');
 });
-
 
 // when requests come into `/shopping-list` or
 // `/recipes`, we'll route them to the express
@@ -27,44 +27,50 @@ app.use('/recipes', recipesRouter);
 // both runServer and closeServer need to access the same
 // server object, so we declare `server` here, and then when
 // runServer runs, it assigns a value.
-let server;
+var server = void 0;
 
 // this function starts our server and returns a Promise.
 // In our test code, we need a way of asynchronously starting
 // our server, since we'll be dealing with promises there.
 function runServer() {
-  const port = process.env.PORT || 8080;
-  return new Promise((resolve, reject) => {
-    server = app.listen(port, () => {
-      console.log(`Your app is listening on port ${port}`);
-      resolve(server);
-    }).on('error', err => {
-      reject(err)
+    var port = process.env.PORT || 8080;
+    return new Promise(function (resolve, reject) {
+        server = app.listen(port, function () {
+            console.log('Your app is listening on port ' + port);
+            resolve(server);
+        }).on('error', function (err) {
+            reject(err);
+        });
     });
-  });
 }
 
 // like `runServer`, this function also needs to return a promise.
 // `server.close` does not return a promise on its own, so we manually
 // create one.
 function closeServer() {
-  return new Promise((resolve, reject) => {
-    console.log('Closing server');
-    server.close(err => {
-      if (err) {
-        reject(err);
-        // so we don't also call `resolve()`
-        return;
-      }
-      resolve();
+    return new Promise(function (resolve, reject) {
+        console.log('Closing server');
+        server.close(function (err) {
+            if (err) {
+                reject(err);
+                // so we don't also call `resolve()`
+                return;
+            }
+            resolve();
+        });
     });
-  });
 }
 
 // if server.js is called directly (aka, with `node server.js`), this block
 // runs. but we also export the runServer command so other code (for instance, test code) can start the server as needed.
 if (require.main === module) {
-  runServer().catch(err => console.error(err));
+    runServer().catch(function (err) {
+        return console.error(err);
+    });
 };
 
-module.exports = {app, runServer, closeServer};
+module.exports = {
+    app: app,
+    runServer: runServer,
+    closeServer: closeServer
+};
